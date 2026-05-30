@@ -354,7 +354,7 @@
                 });
             } catch(e) {}
 
-            const urlParams = newSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(window.location.search);
             const passedData = urlParams.get('data') || urlParams.get('text');
             
             if (passedData && passedData.trim().length > 0) {
@@ -601,6 +601,9 @@
                 triggerToast("Please enter oncology clinical text first!", "⚠️");
                 return;
             }
+
+            // Strips all raw ** symbols globally before initial parsing to avoid conflicts
+            rawVal = rawVal.replace(/\*\*/g, '');
 
             const rawLines = rawVal.split('\n')
                 .map(l => l.trim())
