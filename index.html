@@ -354,7 +354,7 @@
                 });
             } catch(e) {}
 
-            const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = newSearchParams(window.location.search);
             const passedData = urlParams.get('data') || urlParams.get('text');
             
             if (passedData && passedData.trim().length > 0) {
@@ -378,14 +378,52 @@
             }
         });
 
-        // Addendum Feature: Automatically tint new typed/pasted text in Red
+        // Addendum & Auto-Capitalize Feature
         document.addEventListener('DOMContentLoaded', () => {
             const visualArea = document.getElementById('viewVisual');
             if (!visualArea) return;
 
+            // Type Tracker (Red text)
             visualArea.addEventListener('keydown', function(e) {
                 if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     document.execCommand('foreColor', false, '#FF0000'); 
+                }
+            });
+
+            // Smart Sentence Case (Capitalize first letter on Space)
+            visualArea.addEventListener('keyup', function(e) {
+                if (e.key === ' ' || e.code === 'Space') {
+                    const sel = window.getSelection();
+                    if (!sel.rangeCount) return;
+                    let node = sel.anchorNode;
+                    
+                    if (node.nodeType === 3) {
+                        let li = node.parentElement.closest('li');
+                        if (!li) return;
+                        
+                        const walk = document.createTreeWalker(li, NodeFilter.SHOW_TEXT, null, false);
+                        let firstTextNode;
+                        while(firstTextNode = walk.nextNode()) {
+                            if (firstTextNode.textContent.trim().length > 0) {
+                                break;
+                            }
+                        }
+                        
+                        if (node === firstTextNode) {
+                            let text = node.textContent;
+                            let match = text.match(/^(\s*)([a-z])/);
+                            if (match) {
+                                let offset = sel.anchorOffset;
+                                node.textContent = match[1] + match[2].toUpperCase() + text.substring(match[1].length + 1);
+                                
+                                const range = document.createRange();
+                                range.setStart(node, offset);
+                                range.collapse(true);
+                                sel.removeAllRanges();
+                                sel.addRange(range);
+                            }
+                        }
+                    }
                 }
             });
 
@@ -488,7 +526,7 @@
                 });
             };
             
-            const mdtKeywords = ['mdt', 'tumor board', 'multidisciplinary', 'joint clinic'];
+            const mdtKeywords = ['mdt', 'tumor board', 'multidisciplinary', 'joint clinic', 'provisional plan'];
             const imagingKeywords = [
                 'scan', 'mri', 'x-ray', 'xray', 'ct', 'pet', 'ultrasound', 'usg', 'mammogram', 'imaging', 
                 'pet-ct', 'pet/ct', 'ugie', 'endoscopy', 'tumour marker', 'tumor marker', 'tumour markers', 'tumor markers'
@@ -508,7 +546,8 @@
             ];
             const miscKeywords = ['investigation', 'investigations', 'echo', 'ecg', 'lvef', 'cbc', 'blood', 'labs', 'cardiac', 'parameters'];
             const complaintsKeywords = ['complaints', 'complaint', 'clinical events', 'clinical event'];
-            const planKeywords = ['provisional plan', 'plan'];
+            const planKeywords = ['plan'];
+            const defaultedKeywords = ['defaulted', 'lost to follow up'];
 
             if (hasWord(mdtKeywords)) return "#EF6C00"; // Bold Orange
             if (hasWord(imagingKeywords)) return "#db2777"; // Dark Pink
@@ -519,20 +558,20 @@
             if (hasWord(miscKeywords)) return "#707070"; // Slate Grey
             if (hasWord(complaintsKeywords)) return "#00BFFF"; // Light Sky Blue
             if (hasWord(planKeywords)) return "#FF0000"; // Standard Red
+            if (hasWord(defaultedKeywords)) return "#FF0000"; // Red
             
             return "#333333"; // General text color fallback (No color/neutral)
         }
 
         function cleanLinePrefixes(text) {
             let cleaned = text.trim(); 
-            // Removes bullets (- or • or *) so Markdown parsing isn't disturbed
+            // Removes structural bullets so Markdown parsing isn't disturbed
             while (cleaned.match(/^[•\-]\s+/) || cleaned.match(/^\*\s+/)) {
                 cleaned = cleaned.replace(/^[•\-]\s+/, '').replace(/^\*\s+/, '').trim();
             }
             return cleaned;
         }
 
-        // Translates safely cached markdown identifiers back to true HTML
         function applyMarkdown(str) {
             if (!str) return "";
             return str
@@ -611,7 +650,12 @@
             for (let i = 0; i < rawLines.length; i++) {
                 if (i === titleLineIndex) continue;
 
-                const currentLine = cleanLinePrefixes(rawLines[i]);
+                let currentLine = cleanLinePrefixes(rawLines[i]);
+                
+                // Smart auto-replacements for rapid typing
+                currentLine = currentLine.replace(/\bRT started on\s*/gi, 'RT start - ');
+                currentLine = currentLine.replace(/\bchemo completed on\s*/gi, 'Chemo completed - ');
+
                 const lowerLine = currentLine.toLowerCase();
 
                 if (activeSegment === "metadata" && (lowerLine.startsWith('date:') || metadataDateRemovalRegex.test(currentLine))) {
@@ -633,17 +677,41 @@
                 if (isAdviceHeader) { activeSegment = "advice"; continue; }
                 if (isReviewHeader) { activeSegment = "review"; continue; }
 
-                const cleanedContent = cleanLinePrefixes(currentLine);
-                if (!cleanedContent) continue;
+                if (!currentLine) continue;
+                
+                // Detect and split Defaulted/Lost to follow up into distinct red alerts
+                const defaultedRegex = /(.*?)?(defaulted|lost to follow up)(.*)/i;
+                const defMatch = currentLine.match(defaultedRegex);
+                
+                if (defMatch) {
+                    let before = defMatch[1] ? defMatch[1].trim() : "";
+                    let keyword = defMatch[2].charAt(0).toUpperCase() + defMatch[2].slice(1).toLowerCase();
+                    let after = defMatch[3] ? defMatch[3].trim() : "";
+                    
+                    after = after.replace(/^(rx|treatment)\s+/i, '');
+                    let defaultedLine = `${keyword} - ${after}`;
+                    
+                    if (before && before !== "-") {
+                        if (activeSegment === "timeline") timelineLines.push(before);
+                        else if (activeSegment === "advice") adviceLines.push(before);
+                        else if (activeSegment === "review") reviewLines.push(before);
+                    }
+                    
+                    if (activeSegment === "timeline") timelineLines.push(defaultedLine);
+                    else if (activeSegment === "advice") adviceLines.push(defaultedLine);
+                    else if (activeSegment === "review") reviewLines.push(defaultedLine);
+                    
+                    continue; 
+                }
 
                 if (activeSegment === "timeline") {
-                    timelineLines.push(cleanedContent);
+                    timelineLines.push(currentLine);
                 } else if (activeSegment === "advice") {
-                    adviceLines.push(cleanedContent);
+                    adviceLines.push(currentLine);
                 } else if (activeSegment === "review") {
-                    reviewLines.push(cleanedContent);
+                    reviewLines.push(currentLine);
                 } else if (activeSegment === "metadata") {
-                    timelineLines.push(cleanedContent);
+                    timelineLines.push(currentLine);
                 }
             }
 
@@ -653,29 +721,32 @@
             if (reviewLines.length === 0) reviewLines.push("Review SOS.");
 
             let timelineHtml = "";
-            const timelineRegex = /^(?:\*\*)?(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\s*-\s*([^:]+)(?::(.*))?$/;
-            
+            const timelineRegex = /^(?:\*\*)?(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\s*-\s*(.*?)(?:\s*:\s*(.*)|\s+-\s+(.*))?$/;
             const highlightStyle = `background-color: #ffff00; color: #000000; font-weight: bold; cursor: pointer; display: inline-block;`;
 
             timelineLines.forEach((item, index) => {
                 const processedItem = item.replace(/Scan\s*\(([^)]+)\)/ig, '$1');
-                const match = processedItem.match(timelineRegex);
                 let liContent = "";
+
+                const match = processedItem.match(timelineRegex);
 
                 if (match) {
                     const datePart = match[1].replace(/[\*\_]/g, '').trim();
                     let eventPart = match[2].replace(/[\*\_]/g, '').trim();
-                    const detailsPart = match[3] ? match[3].trim() : "";
+                    const detailsPart = (match[3] !== undefined ? match[3] : (match[4] !== undefined ? match[4] : "")).trim();
                     
                     const isClinicalEvents = eventPart.toLowerCase() === 'clinical events' || eventPart.toLowerCase() === 'clinical event';
                     const parsedColor = getCategoryColor(eventPart);
                     const isSurgery = parsedColor === "#009600";
+                    
+                    let displayDelimiter = match[4] !== undefined ? '-' : ':';
+                    if (!detailsPart) displayDelimiter = '';
 
                     if (isClinicalEvents) {
                         if (detailsPart) {
                             liContent = isSurgery 
-                                ? `<font color="${parsedColor}"><strong class="emr-label">${datePart} :</strong> ${detailsPart}</font>`
-                                : `<strong class="emr-label"><font color="${parsedColor}">${datePart} :</font></strong> ${detailsPart}`;
+                                ? `<font color="${parsedColor}"><strong class="emr-label">${datePart} ${displayDelimiter}</strong> ${detailsPart}</font>`
+                                : `<strong class="emr-label"><font color="${parsedColor}">${datePart} ${displayDelimiter}</font></strong> ${detailsPart}`;
                         } else {
                             liContent = `<strong class="emr-label"><font color="${parsedColor}">${datePart}</font></strong>`;
                         }
@@ -683,42 +754,61 @@
                         if (detailsPart) {
                             const label = `${datePart} - ${eventPart}`;
                             liContent = isSurgery
-                                ? `<font color="${parsedColor}"><strong class="emr-label">${label}:</strong> ${detailsPart}</font>`
-                                : `<strong class="emr-label"><font color="${parsedColor}">${label}:</font></strong> ${detailsPart}`;
+                                ? `<font color="${parsedColor}"><strong class="emr-label">${label} ${displayDelimiter}</strong> ${detailsPart}</font>`
+                                : `<strong class="emr-label"><font color="${parsedColor}">${label} ${displayDelimiter}</font></strong> ${detailsPart}`;
                         } else {
                             const parsedColorForDetails = getCategoryColor(eventPart);
                             const isSurg2 = parsedColorForDetails === "#009600";
                             liContent = isSurg2
-                                ? `<font color="${parsedColorForDetails}"><strong class="emr-label">${datePart} -</strong> ${eventPart}</font>`
-                                : `<strong class="emr-label"><font color="${parsedColorForDetails}">${datePart} -</font></strong> ${eventPart}`;
+                                ? `<font color="${parsedColorForDetails}"><strong class="emr-label">${datePart} - ${eventPart}</strong></font>`
+                                : `<strong class="emr-label"><font color="${parsedColorForDetails}">${datePart} - ${eventPart}</font></strong>`;
                         }
                     }
                 } else {
-                    const colonIdx = processedItem.indexOf(':');
-                    if (colonIdx !== -1) {
-                        let label = processedItem.substring(0, colonIdx + 1).replace(/[\*\_]/g, '').trim();
-                        const valueStr = processedItem.substring(colonIdx + 1);
+                    let splitIdx = processedItem.indexOf(':');
+                    let displayDelimiter = ':';
+
+                    if (splitIdx === -1) {
+                        splitIdx = processedItem.indexOf(' - ');
+                        displayDelimiter = '-';
+                    }
+                    if (splitIdx === -1 && processedItem.endsWith(' -')) {
+                        splitIdx = processedItem.length - 2;
+                        displayDelimiter = '-';
+                    }
+
+                    if (splitIdx !== -1) {
+                        let label = processedItem.substring(0, splitIdx).replace(/[\*\_]/g, '').trim();
+                        let valueStr = processedItem.substring(splitIdx + (displayDelimiter === '-' ? 3 : 1)).trim();
+                        if (displayDelimiter === '-' && splitIdx === processedItem.length - 2) valueStr = "";
                         
-                        const cleanLabelLower = label.toLowerCase().replace(/[^a-z]/g, '');
                         const parsedColor = getCategoryColor(label);
-                        const isSurgery = parsedColor === "#009600";
+                        const isDefaulted = label.toLowerCase().includes('defaulted') || label.toLowerCase().includes('lost to follow up');
+                        const colorWholeLine = (parsedColor === "#009600") || isDefaulted;
+                        const actualColor = isDefaulted ? "#FF0000" : parsedColor;
                         
-                        if (cleanLabelLower === 'clinicalevents' || cleanLabelLower === 'clinicalevent') {
-                            liContent = isSurgery
-                                ? `<font color="${parsedColor}"><strong class="emr-label">:</strong>${valueStr}</font>`
-                                : `<strong class="emr-label"><font color="${parsedColor}">:</font></strong>${valueStr}`;
+                        if (label.toLowerCase().includes('clinical event')) {
+                            label = label.replace(/clinical events?/gi, '').trim();
+                        }
+
+                        let formattedHeader = label ? `${label} ${displayDelimiter}` : displayDelimiter;
+
+                        if (colorWholeLine) {
+                            liContent = `<font color="${actualColor}"><strong class="emr-label">${formattedHeader}</strong> ${valueStr}</font>`;
                         } else {
-                            liContent = isSurgery
-                                ? `<font color="${parsedColor}"><strong class="emr-label">${label}</strong>${valueStr}</font>`
-                                : `<strong class="emr-label"><font color="${parsedColor}">${label}</font></strong>${valueStr}`;
+                            liContent = `<strong class="emr-label"><font color="${actualColor}">${formattedHeader}</font></strong> ${valueStr}`;
                         }
                     } else {
-                        const parsedColor = getCategoryColor(processedItem);
-                        const isSurgery = parsedColor === "#009600";
-                        if (isSurgery) {
-                            liContent = `<font color="${parsedColor}"><strong class="emr-label">${processedItem}</strong></font>`;
+                        let label = processedItem.replace(/[\*\_]/g, '').trim();
+                        const parsedColor = getCategoryColor(label);
+                        const isDefaulted = label.toLowerCase().includes('defaulted') || label.toLowerCase().includes('lost to follow up');
+                        const colorWholeLine = (parsedColor === "#009600") || isDefaulted;
+                        const actualColor = isDefaulted ? "#FF0000" : parsedColor;
+
+                        if (colorWholeLine) {
+                            liContent = `<font color="${actualColor}"><strong class="emr-label">${label}</strong></font>`;
                         } else {
-                            liContent = `<strong class="emr-label"><font color="${parsedColor}">${processedItem}</font></strong>`;
+                            liContent = `<strong class="emr-label"><font color="${actualColor}">${label}</font></strong>`;
                         }
                     }
                 }
@@ -732,19 +822,29 @@
 
             let adviceHtml = "";
             adviceLines.forEach(item => {
+                let liContent = applyMarkdown(item);
+                if (item.toLowerCase().includes('defaulted') || item.toLowerCase().includes('lost to follow up')) {
+                    liContent = `<font color="#FF0000">${liContent}</font>`;
+                }
+                
                 if (isInitialLoad) {
-                    adviceHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${applyMarkdown(item)}</span></li>\n`;
+                    adviceHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${liContent}</span></li>\n`;
                 } else {
-                    adviceHtml += `  <li>${applyMarkdown(item)}</li>\n`;
+                    adviceHtml += `  <li>${liContent}</li>\n`;
                 }
             });
 
             let reviewHtml = "";
             reviewLines.forEach(item => {
+                let liContent = applyMarkdown(item);
+                if (item.toLowerCase().includes('defaulted') || item.toLowerCase().includes('lost to follow up')) {
+                    liContent = `<font color="#FF0000">${liContent}</font>`;
+                }
+                
                 if (isInitialLoad) {
-                    reviewHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${applyMarkdown(item)}</span></li>\n`;
+                    reviewHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${liContent}</span></li>\n`;
                 } else {
-                    reviewHtml += `  <li>${applyMarkdown(item)}</li>\n`;
+                    reviewHtml += `  <li>${liContent}</li>\n`;
                 }
             });
 
@@ -920,7 +1020,7 @@
         }
 
         function triggerCanvasUpdate() {
-            isInitialLoad = false; // Disable initial highlights on manual update
+            isInitialLoad = false; 
             const visualArea = document.getElementById('viewVisual');
             if (visualArea.innerText.includes("No formatted content generated")) {
                 triggerToast("Format a clinical record first!", "⚠️");
@@ -947,7 +1047,7 @@
         function extractCleanHTML(li) {
             let clone = li.cloneNode(true);
             
-            // Unconditionally destroy all span tags to completely remove yellow highlights
+            // Annihilate temporary yellow highlights 
             let spans = clone.querySelectorAll('span');
             spans.forEach(span => {
                 let parent = span.parentNode;
@@ -955,7 +1055,7 @@
                 parent.removeChild(span);
             });
             
-            // Remove <font> tags (red typing tracking and standard EMR colors)
+            // Annihilate red tracking and structural EMR fonts
             let fonts = clone.querySelectorAll('font');
             fonts.forEach(font => {
                 let parent = font.parentNode;
@@ -963,7 +1063,7 @@
                 parent.removeChild(font);
             });
             
-            // Remove formatter-generated label bolding to prevent infinite nesting loops
+            // Annihilate auto-generated struct labels 
             let labels = clone.querySelectorAll('strong.emr-label, b.emr-label');
             labels.forEach(label => {
                 let parent = label.parentNode;
@@ -971,27 +1071,29 @@
                 parent.removeChild(label);
             });
             
-            // Any remaining formatting is YOUR manual styling - securely encode it for the parser!
+            // Translate explicit MANUAL formatting back into raw markdown tags safely BEFORE extracting text
             let underlines = clone.querySelectorAll('u');
             underlines.forEach(u => {
-                u.replaceWith(`__U__${u.innerHTML}__U__`);
+                let textNode = document.createTextNode(`__U__${u.innerHTML}__U__`);
+                u.parentNode.replaceChild(textNode, u);
             });
 
             let bolds = clone.querySelectorAll('b, strong');
             bolds.forEach(b => {
-                b.replaceWith(`**${b.innerHTML}**`);
+                let textNode = document.createTextNode(`**${b.innerHTML}**`);
+                b.parentNode.replaceChild(textNode, b);
             });
 
             let italics = clone.querySelectorAll('i, em');
             italics.forEach(i => {
-                i.replaceWith(`__${i.innerHTML}__`);
+                let textNode = document.createTextNode(`__${i.innerHTML}__`);
+                i.parentNode.replaceChild(textNode, i);
             });
             
             let cleanHtml = clone.innerHTML;
             cleanHtml = cleanHtml.replace(/&nbsp;/g, ' ');
             cleanHtml = cleanHtml.replace(/<br\s*[\/]?>/gi, '\n');
             
-            // Render it through a clean, unstyled text node to guarantee 100% markup sanitization
             let tempDiv = document.createElement('div');
             tempDiv.innerHTML = cleanHtml;
             return tempDiv.textContent.trim();
