@@ -524,11 +524,21 @@
         }
 
         function cleanLinePrefixes(text) {
-            let cleaned = text.replace(/\*\*/g, '').trim(); 
-            while (cleaned.startsWith('•') || cleaned.startsWith('*') || cleaned.startsWith('-')) {
-                cleaned = cleaned.replace(/^[•\*\-\s]+/, '').trim();
+            let cleaned = text.trim(); 
+            // Removes bullets (- or • or *) so Markdown parsing isn't disturbed
+            while (cleaned.match(/^[•\-]\s+/) || cleaned.match(/^\*\s+/)) {
+                cleaned = cleaned.replace(/^[•\-]\s+/, '').replace(/^\*\s+/, '').trim();
             }
             return cleaned;
+        }
+
+        // Translates safely cached markdown identifiers back to true HTML
+        function applyMarkdown(str) {
+            if (!str) return "";
+            return str
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/__U__(.*?)__U__/g, '<u>$1</u>')
+                .replace(/__(.*?)__/g, '<i>$1</i>');
         }
 
         function syncVisualToCode() {
@@ -552,8 +562,6 @@
                 triggerToast("Please enter oncology clinical text first!", "⚠️");
                 return;
             }
-
-            rawVal = rawVal.replace(/\*\*/g, '');
 
             const rawLines = rawVal.split('\n')
                 .map(l => l.trim())
@@ -645,7 +653,7 @@
             if (reviewLines.length === 0) reviewLines.push("Review SOS.");
 
             let timelineHtml = "";
-            const timelineRegex = /^(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\s*-\s*([^:]+)(?::(.*))?$/;
+            const timelineRegex = /^(?:\*\*)?(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\s*-\s*([^:]+)(?::(.*))?$/;
             
             const highlightStyle = `background-color: #ffff00; color: #000000; font-weight: bold; cursor: pointer; display: inline-block;`;
 
@@ -655,8 +663,8 @@
                 let liContent = "";
 
                 if (match) {
-                    const datePart = match[1].trim();
-                    let eventPart = match[2].trim();
+                    const datePart = match[1].replace(/[\*\_]/g, '').trim();
+                    let eventPart = match[2].replace(/[\*\_]/g, '').trim();
                     const detailsPart = match[3] ? match[3].trim() : "";
                     
                     const isClinicalEvents = eventPart.toLowerCase() === 'clinical events' || eventPart.toLowerCase() === 'clinical event';
@@ -688,7 +696,7 @@
                 } else {
                     const colonIdx = processedItem.indexOf(':');
                     if (colonIdx !== -1) {
-                        let label = processedItem.substring(0, colonIdx + 1).trim();
+                        let label = processedItem.substring(0, colonIdx + 1).replace(/[\*\_]/g, '').trim();
                         const valueStr = processedItem.substring(colonIdx + 1);
                         
                         const cleanLabelLower = label.toLowerCase().replace(/[^a-z]/g, '');
@@ -716,27 +724,27 @@
                 }
 
                 if (isInitialLoad && index === timelineLines.length - 1) {
-                    timelineHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${liContent}</span></li>\n`;
+                    timelineHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${applyMarkdown(liContent)}</span></li>\n`;
                 } else {
-                    timelineHtml += `  <li>${liContent}</li>\n`;
+                    timelineHtml += `  <li>${applyMarkdown(liContent)}</li>\n`;
                 }
             });
 
             let adviceHtml = "";
             adviceLines.forEach(item => {
                 if (isInitialLoad) {
-                    adviceHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${item}</span></li>\n`;
+                    adviceHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${applyMarkdown(item)}</span></li>\n`;
                 } else {
-                    adviceHtml += `  <li>${item}</li>\n`;
+                    adviceHtml += `  <li>${applyMarkdown(item)}</li>\n`;
                 }
             });
 
             let reviewHtml = "";
             reviewLines.forEach(item => {
                 if (isInitialLoad) {
-                    reviewHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${item}</span></li>\n`;
+                    reviewHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${applyMarkdown(item)}</span></li>\n`;
                 } else {
-                    reviewHtml += `  <li>${item}</li>\n`;
+                    reviewHtml += `  <li>${applyMarkdown(item)}</li>\n`;
                 }
             });
 
@@ -752,19 +760,19 @@
             finalOutput += `<p id="doc-date" style="margin-top: 0px; margin-bottom: 4px; line-height: 1.5;"><strong><font color="#FF0000">Date: ${todayStr} ✅</font></strong></p>\n`;
             finalOutput += `<p id="doc-hx" style="margin-top: 0px; margin-bottom: 4px; line-height: 1.5;"><strong>Hx:</strong> ${hxText}</p>\n`;
 
-            finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase;"><strong><font color="#005AC8">TIMELINE</font></strong></h2>\n`;
+            finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase; text-decoration: underline;"><strong><font color="#005AC8">TIMELINE</font></strong></h2>\n`;
             finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="timeline-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 8px;">\n`;
             finalOutput += timelineHtml;
             finalOutput += `</ul>\n`;
 
-            finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase;"><strong><font color="#005AC8">ADVICE</font></strong></h2>\n`;
+            finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase; text-decoration: underline;"><strong><font color="#005AC8">ADVICE</font></strong></h2>\n`;
             finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="advice-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 16px;">\n`;
             finalOutput += adviceHtml;
             finalOutput += `</ul>\n`;
 
-            finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase;"><strong><font color="#005AC8">REVIEW</font></strong></h2>\n`;
+            finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase; text-decoration: underline;"><strong><font color="#005AC8">REVIEW</font></strong></h2>\n`;
             finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="review-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 8px;">\n`;
             finalOutput += reviewHtml;
@@ -935,17 +943,19 @@
             }, 200);
         }
 
-        // Extremely robust DOM parsing to preserve manual user bolding/italic formatting when rebuilding Raw Text
+        // Extremely robust DOM parsing to strip temporary formatting but preserve manual Markdown
         function extractCleanHTML(li) {
             let clone = li.cloneNode(true);
             
-            let highlights = clone.querySelectorAll('span.initial-highlight');
-            highlights.forEach(span => {
+            // Unconditionally destroy all span tags to completely remove yellow highlights
+            let spans = clone.querySelectorAll('span');
+            spans.forEach(span => {
                 let parent = span.parentNode;
                 while(span.firstChild) parent.insertBefore(span.firstChild, span);
                 parent.removeChild(span);
             });
             
+            // Remove <font> tags (red typing tracking and standard EMR colors)
             let fonts = clone.querySelectorAll('font');
             fonts.forEach(font => {
                 let parent = font.parentNode;
@@ -953,17 +963,38 @@
                 parent.removeChild(font);
             });
             
-            let labels = clone.querySelectorAll('strong.emr-label');
+            // Remove formatter-generated label bolding to prevent infinite nesting loops
+            let labels = clone.querySelectorAll('strong.emr-label, b.emr-label');
             labels.forEach(label => {
                 let parent = label.parentNode;
                 while(label.firstChild) parent.insertBefore(label.firstChild, label);
                 parent.removeChild(label);
             });
             
+            // Any remaining formatting is YOUR manual styling - securely encode it for the parser!
+            let underlines = clone.querySelectorAll('u');
+            underlines.forEach(u => {
+                u.replaceWith(`__U__${u.innerHTML}__U__`);
+            });
+
+            let bolds = clone.querySelectorAll('b, strong');
+            bolds.forEach(b => {
+                b.replaceWith(`**${b.innerHTML}**`);
+            });
+
+            let italics = clone.querySelectorAll('i, em');
+            italics.forEach(i => {
+                i.replaceWith(`__${i.innerHTML}__`);
+            });
+            
             let cleanHtml = clone.innerHTML;
             cleanHtml = cleanHtml.replace(/&nbsp;/g, ' ');
             cleanHtml = cleanHtml.replace(/<br\s*[\/]?>/gi, '\n');
-            return cleanHtml.trim();
+            
+            // Render it through a clean, unstyled text node to guarantee 100% markup sanitization
+            let tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cleanHtml;
+            return tempDiv.textContent.trim();
         }
 
         function updateRawInputFromVisual() {
