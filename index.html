@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- Apple Native Web App Integration Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Da Vinci">
@@ -12,9 +11,7 @@
     <meta name="theme-color" content="#09090b">
 
     <title>Da Vinci - Oncology Document Formatter</title>
-    <!-- Tailwind CSS for premium, high-fidelity UI layout framework -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- html2pdf.js for native high-fidelity client-side PDF compilation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Custom scrollbar adjustments for EMR dashboard look */
@@ -41,7 +38,6 @@
             line-height: 1.3;
         }
         
-        /* Stripped border-bottom CSS; we will use native HR tags for Pages compatibility */
         #viewVisual h2 {
             margin-top: 20px;
             margin-bottom: 4px;
@@ -69,15 +65,6 @@
             line-height: 1.4;
         }
 
-        /* Pulsing recording indicators */
-        .indicator-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: .4; transform: scale(1.15); }
-        }
-
         /* PRINT STYLESHEET: Enforces flawless PDF generation containing ONLY the medical record */
         @media print {
             body {
@@ -85,7 +72,7 @@
                 color: black !important;
             }
             /* Hide entire interactive EMR controls, inputs, and the vertical actions dock */
-            header, #inputSection, footer, #toast, #canvasVerticalDock {
+            header, #inputSection, #inputToggleBtn, footer, #toast, #canvasVerticalDock {
                 display: none !important;
             }
             /* Reset layouts and expand only the clinical sheet */
@@ -126,7 +113,6 @@
 </head>
 <body class="bg-zinc-950 text-zinc-100 h-screen flex flex-col font-sans antialiased overflow-hidden">
 
-    <!-- TOP NAVIGATION HEADER (Compact Branding) -->
     <header class="bg-zinc-900/50 backdrop-blur-md border-b border-zinc-800 px-6 py-2 flex justify-between items-center shrink-0">
         <div class="flex items-center gap-2">
             <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/10">
@@ -143,30 +129,24 @@
                 <span class="text-zinc-800">•</span>
                 <span>EMR ENGINE v2.6</span>
             </div>
-            <!-- Fullscreen Toggle moved to top right corner -->
             <button onclick="toggleFullScreen()" title="Toggle Fullscreen" class="text-zinc-400 hover:text-white transition-colors duration-150 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
             </button>
         </div>
     </header>
 
-    <!-- MAIN CLINICAL SCROLLABLE WORKSPACE (Tightened padding to maximize vertical height) -->
     <main class="flex-1 p-3 md:p-4 flex flex-col gap-3 overflow-hidden min-h-0">
         
-        <!-- CANVAS MAIN WINDOW + RIGHT DOCK -->
         <div id="outputSection" class="flex-1 flex flex-row gap-3 min-h-0 relative">
             
-            <!-- Canvas (Reduced excessive white padding to give more room for text) -->
             <div id="viewVisual" contenteditable="true" class="flex-1 h-full overflow-y-auto bg-white text-zinc-900 rounded-xl p-6 md:p-8 lg:p-10 shadow-2xl focus:outline-none focus:ring-1 focus:ring-zinc-400" style="font-family: Calibri, 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #333333;">
                 <div class="flex h-full items-center justify-center text-zinc-400 italic font-medium" contenteditable="false">
-                    No formatted content generated. Paste clinical logs and click "Format & Apply Rules".
+                    No formatted content generated. Wait for Shortcut import or click 'Open Input' to paste logs.
                 </div>
             </div>
 
-            <!-- Ultra-Minimal Right Dock -->
             <div id="canvasVerticalDock" class="w-10 shrink-0 flex flex-col items-center gap-4 overflow-y-auto no-scrollbar py-2">
                 
-                <!-- CORE ACTIONS: Update (Yellow) & Copy (Pink) -->
                 <div class="flex flex-col gap-2 w-full items-center">
                     <button onclick="triggerCanvasUpdate()" title="Update Canvas" class="w-8 h-8 flex items-center justify-center bg-yellow-500 hover:bg-yellow-400 text-zinc-950 rounded shadow-lg shadow-yellow-500/20 transition-all duration-150">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -178,7 +158,6 @@
 
                 <div class="w-4 h-px bg-zinc-800/80"></div>
 
-                <!-- Format Painter Tools -->
                 <div class="flex flex-col gap-1 w-full items-center">
                     <button onmousedown="event.preventDefault()" onclick="copyFormatStyle()" title="Copy Style" class="bg-[#d97706] hover:bg-[#b45309] text-white shadow-lg w-8 h-8 flex items-center justify-center rounded text-sm transition-colors duration-150">☕</button>
                     <button onmousedown="event.preventDefault()" onclick="pasteFormatStyle()" title="Paste Style" class="bg-white hover:bg-zinc-200 text-black shadow-lg w-8 h-8 flex items-center justify-center rounded text-sm transition-colors duration-150">💩</button>
@@ -186,7 +165,6 @@
                 
                 <div class="w-4 h-px bg-zinc-800/80"></div>
                 
-                <!-- Dropdowns (Wrapped invisibly over custom typography keys) -->
                 <div class="flex flex-col gap-1 w-full items-center">
                     <div class="relative w-8 h-8" title="Font Family">
                         <button class="w-full h-full flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-serif text-[13px] transition-colors duration-150">Ff</button>
@@ -230,7 +208,6 @@
 
                 <div class="w-4 h-px bg-zinc-800/80"></div>
 
-                <!-- Text Styles -->
                 <div class="flex flex-col gap-1 w-full items-center">
                     <button onmousedown="event.preventDefault()" onclick="applyTextFormat('bold')" title="Bold" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-bold text-[13px] transition-colors duration-150">B</button>
                     <button onmousedown="event.preventDefault()" onclick="applyTextFormat('italic')" title="Italic" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded italic font-serif text-[13px] transition-colors duration-150">/</button>
@@ -239,7 +216,6 @@
 
                 <div class="w-4 h-px bg-zinc-800/80"></div>
 
-                <!-- Secondary Actions -->
                 <div class="flex flex-col gap-2 w-full items-center">
                     <button onclick="triggerDirectPrint()" title="Print PDF" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-emerald-400 hover:bg-emerald-400/10 rounded transition-colors duration-150">
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
@@ -250,18 +226,22 @@
                 </div>
             </div>
             
-            <!-- Hidden field for Raw HTML back-end mapping -->
             <textarea id="rawHtmlCode" class="hidden"></textarea>
 
         </div>
 
-        <!-- COMPACT RAW CLINICAL TEXT INPUT -->
-        <div id="inputSection" class="shrink-0 flex flex-col gap-2">
+        <div class="shrink-0 flex justify-end">
+            <button id="inputToggleBtn" onclick="toggleInputSection()" class="bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-[10px] px-3 py-1.5 rounded-lg font-medium transition-all duration-200 border border-zinc-800 flex items-center gap-1.5 shadow-sm">
+                <span class="text-xs">⌨️</span> Open Input
+            </button>
+        </div>
+
+        <div id="inputSection" class="hidden shrink-0 flex-col gap-2 transition-all duration-300">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div class="flex items-center gap-3">
                     <h2 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-md shadow-amber-500/20"></span>
-                        Input here
+                        Manual Input
                     </h2>
                     <div class="flex items-center gap-3 text-[10px] text-zinc-600 font-mono">
                         <span id="statLines">0 lines</span>
@@ -282,18 +262,16 @@
                 </div>
             </div>
             
-            <!-- Pale Yellow Input Box for high contrast text pasting -->
             <textarea 
                 id="clinicalInput" 
                 oninput="onInputChanged()"
                 placeholder="Paste raw oncology logs here (e.g., patient details, timeline, advice, review)..." 
-                class="w-full h-10 bg-[#fefce8] border border-yellow-200 rounded p-2.5 font-mono text-[11px] text-black placeholder-zinc-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all duration-200 resize-none overflow-hidden"
+                class="w-full h-16 bg-[#fefce8] border border-yellow-200 rounded p-2.5 font-mono text-[11px] text-black placeholder-zinc-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all duration-200 resize-none overflow-y-auto"
             ></textarea>
         </div>
 
     </main>
 
-    <!-- KMAIL UPDATE CONFIRMATION MODAL -->
     <div id="kmailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-zinc-900 border border-zinc-800 rounded-xl max-w-md w-full p-6 shadow-2xl transform scale-100 transition-transform duration-300">
             <div class="flex items-center gap-3 mb-4">
@@ -316,38 +294,66 @@
         </div>
     </div>
 
-    <!-- DYNAMIC METRIC NOTIFICATION SYSTEM -->
     <div id="toast" class="fixed bottom-6 right-6 bg-zinc-900 border border-zinc-800 text-zinc-200 px-4 py-3 rounded-lg shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 flex items-center gap-2.5 text-xs font-medium z-50">
         <span id="toastIcon">💡</span>
         <span id="toastText">Message goes here</span>
     </div>
 
-    <!-- CORE SYSTEM SCRIPT AND EVENT PROCESSORS -->
     <script>
         const CHRONO_EMR_YEAR = "2026";
         let parsedPatientName = "Clinical Case Update";
-        let copiedFormat = null; // Stored painter style rule
-        let savedRange = null; // Preserved visual cursor state
+        let copiedFormat = null; 
+        let savedRange = null; 
+        let isInitialLoad = true; // Tracks if it's the first automated pipeline run to show highlights
 
-        // Escaped RegEx forward slashes correctly to avoid browser terminal errors on load
         const metadataDateRemovalRegex = /^(date\s*:\s*)?((monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)[a-z]*,\s*)?(\d{1,2}[-\/\s]+[a-z]{3,9}[-\/\s]+\d{4}|\d{1,2}[-\/\s]+[0-9]{1,2}[-\/\s]+\d{4}|[a-z]{3,9}[-\/\s]+\d{1,2},\s*\d{4})\s*[\-:]*\s*$/i;
 
-        // Monitor document selection adjustments to cache live text highlight regions
         document.addEventListener('selectionchange', () => {
             const sel = window.getSelection();
             if (sel && sel.rangeCount > 0) {
                 const range = sel.getRangeAt(0);
                 const container = document.getElementById('viewVisual');
-                // Capture coordinates only if selection is located inside the active EMR canvas
                 if (container && container.contains(range.commonAncestorContainer)) {
                     savedRange = range.cloneRange();
                 }
             }
         });
 
-        // Auto-Ingest Engine: Checks URL parameters on load for Apple Shortcuts integration
+        // 1-Click Smart Placeholder Selection Tool
+        window.selectPlaceholderText = function(element, event) {
+            if (element.dataset.selected === "true") return;
+            
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
+            element.dataset.selected = "true";
+            
+            const resetSelection = function(e) {
+                if (!element.contains(e.target)) {
+                    element.dataset.selected = "false";
+                    document.removeEventListener('click', resetSelection);
+                }
+            };
+            document.addEventListener('click', resetSelection);
+            
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+        };
+
+        // Auto-Ingest Engine & Fullscreen
         window.addEventListener('DOMContentLoaded', () => {
-            // 1. First, check if Apple Shortcuts passed data via the URL
+            // Attempt auto-fullscreen on load
+            try {
+                document.documentElement.requestFullscreen().catch(e => {
+                    console.log("Safari sandbox blocked auto-fullscreen without user click.");
+                });
+            } catch(e) {}
+
             const urlParams = new URLSearchParams(window.location.search);
             const passedData = urlParams.get('data') || urlParams.get('text');
             
@@ -357,10 +363,8 @@
                 executeFormatterPipeline(passedData);
                 triggerToast("Data imported from Shortcut!", "⚡");
                 
-                // Optional: Clean the URL so refreshing doesn't re-trigger it
                 window.history.replaceState({}, document.title, window.location.pathname);
             } else {
-                // 2. Fallback: Try a silent clipboard read (may be blocked by Safari without click, but fails gracefully)
                 navigator.clipboard.readText().then(text => {
                     if (text && text.trim().length > 0) {
                         document.getElementById('clinicalInput').value = text;
@@ -369,33 +373,44 @@
                         triggerToast("Clipboard auto-processed!", "📋");
                     }
                 }).catch(err => {
-                    // Fail silently since browser blocked it. Awaiting manual input.
+                    // Fail silently since browser blocked it.
                 });
             }
         });
 
-        // Addendum Feature: Automatically tint new typed text in Green
+        // Addendum Feature: Automatically tint new typed/pasted text in Red
         document.addEventListener('DOMContentLoaded', () => {
             const visualArea = document.getElementById('viewVisual');
             if (!visualArea) return;
 
             visualArea.addEventListener('keydown', function(e) {
-                // Apply green color when typing standard printable characters
                 if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                    document.execCommand('foreColor', false, '#16a34a'); // Tailwind green-600
+                    document.execCommand('foreColor', false, '#FF0000'); 
                 }
             });
 
-            // Handle paste events to ensure pasted addendum text is also green
             visualArea.addEventListener('paste', function(e) {
                 e.preventDefault();
                 const text = (e.originalEvent || e).clipboardData.getData('text/plain');
-                // Insert as plain text wrapped in a green font tag
-                document.execCommand('insertHTML', false, `<font color="#16a34a">${text.replace(/\n/g, '<br>')}</font>`);
+                document.execCommand('insertHTML', false, `<font color="#FF0000">${text.replace(/\n/g, '<br>')}</font>`);
             });
         });
 
-        // Safe recall of last captured highlight coordinates
+        function toggleInputSection() {
+            const inputSec = document.getElementById('inputSection');
+            const toggleBtn = document.getElementById('inputToggleBtn');
+            
+            if (inputSec.classList.contains('hidden')) {
+                inputSec.classList.remove('hidden');
+                inputSec.classList.add('flex');
+                toggleBtn.innerHTML = '<span class="text-xs">⌨️</span> Close Input';
+            } else {
+                inputSec.classList.add('hidden');
+                inputSec.classList.remove('flex');
+                toggleBtn.innerHTML = '<span class="text-xs">⌨️</span> Open Input';
+            }
+        }
+
         function restoreSelection() {
             if (savedRange) {
                 const sel = window.getSelection();
@@ -417,7 +432,6 @@
             }, 2500);
         }
 
-        // Monitor input stats updates
         function onInputChanged() {
             const content = document.getElementById('clinicalInput').value;
             const charCount = content.length;
@@ -429,7 +443,6 @@
             document.getElementById('statLines').textContent = `${lines} line${lines !== 1 ? 's' : ''}`;
         }
 
-        // Maximizes screen real estate by hiding Safari Chrome
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().then(() => {
@@ -447,15 +460,15 @@
 
         function clearWorkspace() {
             document.getElementById('clinicalInput').value = "";
-            document.getElementById('viewVisual').innerHTML = `<div class="flex h-64 items-center justify-center text-zinc-400 italic font-medium py-12" style="font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem;" contenteditable="false">No formatted content generated. Paste clinical logs and click "Format & Apply Rules".</div>`;
+            document.getElementById('viewVisual').innerHTML = `<div class="flex h-64 items-center justify-center text-zinc-400 italic font-medium py-12" style="font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem;" contenteditable="false">No formatted content generated. Wait for Shortcut import or click 'Open Input' to paste logs.</div>`;
             document.getElementById('rawHtmlCode').value = "";
             parsedPatientName = "Clinical Case Update";
             savedRange = null;
+            isInitialLoad = true;
             onInputChanged();
             triggerToast("Workspace cleared", "🧹");
         }
 
-        // Get standard EMR generation date stamp
         function getTodayDateString() {
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             const today = new Date();
@@ -464,11 +477,9 @@
             return `${day} ${months[today.getMonth()]} ${CHRONO_EMR_YEAR}`;
         }
 
-        // Color Matrix Keyword Classifier
         function getCategoryColor(text) {
             const lowerLabel = text.toLowerCase();
             
-            // Helper function to test regex boundaries safely and avoid partial string matches
             const hasWord = (keywords) => {
                 return keywords.some(keyword => {
                     const escaped = keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -500,7 +511,7 @@
             const planKeywords = ['provisional plan', 'plan'];
 
             if (hasWord(mdtKeywords)) return "#EF6C00"; // Bold Orange
-            if (hasWord(imagingKeywords)) return "#0070E0"; // Bright Blue
+            if (hasWord(imagingKeywords)) return "#db2777"; // Dark Pink
             if (hasWord(surgeryKeywords)) return "#009600"; // Bold Green
             if (hasWord(rtKeywords)) return "#D32F2F"; // Clinical Red
             if (hasWord(chemoKeywords)) return "#7B1FA2"; // Royal Purple
@@ -513,14 +524,13 @@
         }
 
         function cleanLinePrefixes(text) {
-            let cleaned = text.replace(/\*\*/g, '').trim(); // Remove ** characters
+            let cleaned = text.replace(/\*\*/g, '').trim(); 
             while (cleaned.startsWith('•') || cleaned.startsWith('*') || cleaned.startsWith('-')) {
                 cleaned = cleaned.replace(/^[•\*\-\s]+/, '').trim();
             }
             return cleaned;
         }
 
-        // Two-way synchronization: maps editor changes back to Pandoc code payload
         function syncVisualToCode() {
             const visualArea = document.getElementById('viewVisual');
             const codeBox = document.getElementById('rawHtmlCode');
@@ -536,7 +546,6 @@
             codeBox.value = htmlPayload;
         }
 
-        // Core Pipeline Parser Engine
         function executeFormatterPipeline(overrideText = null) {
             let rawVal = overrideText !== null ? overrideText : document.getElementById('clinicalInput').value;
             if (!rawVal.trim()) {
@@ -544,10 +553,8 @@
                 return;
             }
 
-            // Strips all ** symbols globally before parsing the logs
             rawVal = rawVal.replace(/\*\*/g, '');
 
-            // Clean lines, skip metadata noise & placeholder fields immediately
             const rawLines = rawVal.split('\n')
                 .map(l => l.trim())
                 .filter(l => {
@@ -563,7 +570,6 @@
             let hasValidTitle = false;
             let titleLineIndex = -1;
 
-            // Resolve Demographics Name Row
             for (let i = 0; i < rawLines.length; i++) {
                 if (rawLines[i].includes('|')) {
                     titleBlock = rawLines[i];
@@ -573,7 +579,6 @@
                 }
             }
 
-            // Parse Patient Name for dynamic email subjects
             if (hasValidTitle && titleBlock) {
                 const namePart = titleBlock.split('|')[0].trim();
                 parsedPatientName = namePart ? namePart : "Clinical Case Update";
@@ -587,11 +592,8 @@
             let reviewLines = [];
 
             let activeSegment = "metadata";
-            
-            // Standard dynamic dates default setup
             let todayStr = getTodayDateString();
 
-            // Escaped RegEx forward slashes correctly to prevent JS termination errors
             const isIsolatedDate = (line) => {
                 const cleaned = line.trim();
                 const pureDatePattern = /^(date\s*:\s*)?((monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)[a-z]*,\s*)?(\d{1,2}[-\/\s]+[a-z]{3,9}[-\/\s]+\d{4}|\d{1,2}[-\/\s]+[0-9]{1,2}[-\/\s]+\d{4}|[a-z]{3,9}[-\/\s]+\d{1,2},\s*\d{4})\s*[\-:]*\s*$/i;
@@ -604,21 +606,17 @@
                 const currentLine = cleanLinePrefixes(rawLines[i]);
                 const lowerLine = currentLine.toLowerCase();
 
-                // Swallow existing date lines to prevent duplication
                 if (activeSegment === "metadata" && (lowerLine.startsWith('date:') || metadataDateRemovalRegex.test(currentLine))) {
                     continue;
                 }
 
-                // Exclude duplicate date blocks
                 if (metadataDateRemovalRegex.test(currentLine)) continue;
 
-                // Capture Hx Summary
                 if (lowerLine.startsWith('hx:') || lowerLine.startsWith('history:')) {
                     hxText = currentLine.replace(/^(hx:|history:)\s*/i, '').trim();
                     continue;
                 }
 
-                // Parse section transitions
                 const isTimelineHeader = (lowerLine === 'timeline' || lowerLine === 'timeline:' || lowerLine === '## timeline' || lowerLine === 'oncological timeline');
                 const isAdviceHeader = (lowerLine === 'advice' || lowerLine === 'advice:' || lowerLine === '## advice' || lowerLine === 'medication plan' || lowerLine === 'review & advice');
                 const isReviewHeader = (lowerLine === 'review' || lowerLine === 'review:' || lowerLine === '## review');
@@ -641,20 +639,21 @@
                 }
             }
 
-            // Exclude standalone isolated date entries (e.g. "16 Apr 2026") from timeline lines
             timelineLines = timelineLines.filter(line => !isIsolatedDate(line));
 
-            // Standards enforcement safety triggers
             if (adviceLines.length === 0) adviceLines.push("No current active advice listed.");
             if (reviewLines.length === 0) reviewLines.push("Review SOS.");
 
-            // Compile Timeline List nodes using clean regex pattern splitting
             let timelineHtml = "";
             const timelineRegex = /^(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4})\s*-\s*([^:]+)(?::(.*))?$/;
+            
+            const highlightStyle = `background-color: #ffff00; color: #000000; font-weight: bold; cursor: pointer; display: inline-block;`;
 
-            timelineLines.forEach(item => {
+            timelineLines.forEach((item, index) => {
                 const processedItem = item.replace(/Scan\s*\(([^)]+)\)/ig, '$1');
                 const match = processedItem.match(timelineRegex);
+                let liContent = "";
+
                 if (match) {
                     const datePart = match[1].trim();
                     let eventPart = match[2].trim();
@@ -666,24 +665,24 @@
 
                     if (isClinicalEvents) {
                         if (detailsPart) {
-                            timelineHtml += isSurgery 
-                                ? `  <li><font color="${parsedColor}"><strong>${datePart} :</strong> ${detailsPart}</font></li>\n`
-                                : `  <li><strong><font color="${parsedColor}">${datePart} :</font></strong> ${detailsPart}</li>\n`;
+                            liContent = isSurgery 
+                                ? `<font color="${parsedColor}"><strong class="emr-label">${datePart} :</strong> ${detailsPart}</font>`
+                                : `<strong class="emr-label"><font color="${parsedColor}">${datePart} :</font></strong> ${detailsPart}`;
                         } else {
-                            timelineHtml += `  <li><strong><font color="${parsedColor}">${datePart}</font></strong></li>\n`;
+                            liContent = `<strong class="emr-label"><font color="${parsedColor}">${datePart}</font></strong>`;
                         }
                     } else {
                         if (detailsPart) {
                             const label = `${datePart} - ${eventPart}`;
-                            timelineHtml += isSurgery
-                                ? `  <li><font color="${parsedColor}"><strong>${label}:</strong> ${detailsPart}</font></li>\n`
-                                : `  <li><strong><font color="${parsedColor}">${label}:</font></strong> ${detailsPart}</li>\n`;
+                            liContent = isSurgery
+                                ? `<font color="${parsedColor}"><strong class="emr-label">${label}:</strong> ${detailsPart}</font>`
+                                : `<strong class="emr-label"><font color="${parsedColor}">${label}:</font></strong> ${detailsPart}`;
                         } else {
                             const parsedColorForDetails = getCategoryColor(eventPart);
                             const isSurg2 = parsedColorForDetails === "#009600";
-                            timelineHtml += isSurg2
-                                ? `  <li><font color="${parsedColorForDetails}"><strong>${datePart} -</strong> ${eventPart}</font></li>\n`
-                                : `  <li><strong><font color="${parsedColorForDetails}">${datePart} -</font></strong> ${eventPart}</li>\n`;
+                            liContent = isSurg2
+                                ? `<font color="${parsedColorForDetails}"><strong class="emr-label">${datePart} -</strong> ${eventPart}</font>`
+                                : `<strong class="emr-label"><font color="${parsedColorForDetails}">${datePart} -</font></strong> ${eventPart}`;
                         }
                     }
                 } else {
@@ -697,67 +696,74 @@
                         const isSurgery = parsedColor === "#009600";
                         
                         if (cleanLabelLower === 'clinicalevents' || cleanLabelLower === 'clinicalevent') {
-                            timelineHtml += isSurgery
-                                ? `  <li><font color="${parsedColor}"><strong>:</strong>${valueStr}</font></li>\n`
-                                : `  <li><strong><font color="${parsedColor}">:</font></strong>${valueStr}</li>\n`;
+                            liContent = isSurgery
+                                ? `<font color="${parsedColor}"><strong class="emr-label">:</strong>${valueStr}</font>`
+                                : `<strong class="emr-label"><font color="${parsedColor}">:</font></strong>${valueStr}`;
                         } else {
-                            timelineHtml += isSurgery
-                                ? `  <li><font color="${parsedColor}"><strong>${label}</strong>${valueStr}</font></li>\n`
-                                : `  <li><strong><font color="${parsedColor}">${label}</font></strong>${valueStr}</li>\n`;
+                            liContent = isSurgery
+                                ? `<font color="${parsedColor}"><strong class="emr-label">${label}</strong>${valueStr}</font>`
+                                : `<strong class="emr-label"><font color="${parsedColor}">${label}</font></strong>${valueStr}`;
                         }
                     } else {
                         const parsedColor = getCategoryColor(processedItem);
                         const isSurgery = parsedColor === "#009600";
                         if (isSurgery) {
-                            timelineHtml += `  <li><font color="${parsedColor}"><strong>${processedItem}</strong></font></li>\n`;
+                            liContent = `<font color="${parsedColor}"><strong class="emr-label">${processedItem}</strong></font>`;
                         } else {
-                            timelineHtml += `  <li><strong><font color="${parsedColor}">${processedItem}</font></strong></li>\n`;
+                            liContent = `<strong class="emr-label"><font color="${parsedColor}">${processedItem}</font></strong>`;
                         }
                     }
                 }
+
+                if (isInitialLoad && index === timelineLines.length - 1) {
+                    timelineHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${liContent}</span></li>\n`;
+                } else {
+                    timelineHtml += `  <li>${liContent}</li>\n`;
+                }
             });
 
-            // Plain text Advice generation
             let adviceHtml = "";
             adviceLines.forEach(item => {
-                adviceHtml += `  <li>${item}</li>\n`;
+                if (isInitialLoad) {
+                    adviceHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${item}</span></li>\n`;
+                } else {
+                    adviceHtml += `  <li>${item}</li>\n`;
+                }
             });
 
-            // Plain text Review generation
             let reviewHtml = "";
             reviewLines.forEach(item => {
-                reviewHtml += `  <li>${item}</li>\n`;
+                if (isInitialLoad) {
+                    reviewHtml += `  <li><span class="initial-highlight" style="${highlightStyle}" onclick="selectPlaceholderText(this, event)">${item}</span></li>\n`;
+                } else {
+                    reviewHtml += `  <li>${item}</li>\n`;
+                }
             });
 
-            // Construct Final EMR Canvas payload natively supporting 1-Column Paste into Apple Pages
             let htmlPayload = "<html>\n<body>\n";
             htmlPayload += "<font face=\"Calibri, 'Segoe UI', Arial, sans-serif\" color=\"#333333\">\n";
 
             let finalOutput = ``;
             
-            // Header Section
             if (hasValidTitle && titleBlock) {
                 finalOutput += `<h1 style="margin-top: 0px; margin-bottom: 8px; font-size: 18px; line-height: 1.3;"><strong><font color="#800000">${titleBlock}</font></strong></h1>\n`;
             }
             
-            finalOutput += `<p id="doc-date" style="margin-top: 0px; margin-bottom: 4px; line-height: 1.5;"><strong><font color="#FF0000">Date: ${todayStr}</font></strong></p>\n`;
+            finalOutput += `<p id="doc-date" style="margin-top: 0px; margin-bottom: 4px; line-height: 1.5;"><strong><font color="#FF0000">Date: ${todayStr} ✅</font></strong></p>\n`;
             finalOutput += `<p id="doc-hx" style="margin-top: 0px; margin-bottom: 4px; line-height: 1.5;"><strong>Hx:</strong> ${hxText}</p>\n`;
 
-            // Timeline Column
             finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase;"><strong><font color="#005AC8">TIMELINE</font></strong></h2>\n`;
             finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="timeline-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 8px;">\n`;
             finalOutput += timelineHtml;
             finalOutput += `</ul>\n`;
 
-            // Advice Column
             finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase;"><strong><font color="#005AC8">ADVICE</font></strong></h2>\n`;
             finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="advice-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 16px;">\n`;
             finalOutput += adviceHtml;
             finalOutput += `</ul>\n`;
 
-            // Review Column
             finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase;"><strong><font color="#005AC8">REVIEW</font></strong></h2>\n`;
             finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="review-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 8px;">\n`;
@@ -778,7 +784,6 @@
             triggerToast("Patient file compiled successfully!", "⚡");
         }
 
-        // Helper: Convert standard RGB browser output to clean HEX strings for robust cross-app paste compatibility
         function rgbToHex(rgb) {
             if (!rgb) return "#333333";
             if (rgb.startsWith('#')) return rgb;
@@ -789,8 +794,6 @@
             const b = parseInt(match[3]).toString(16).padStart(2, '0');
             return `#${r}${g}${b}`;
         }
-
-        // --- NATIVE TEXT FORMATTING & RICH TEXT PIPELINE CONTROLLERS ---
 
         function applyFontFamily(fontName) {
             restoreSelection();
@@ -903,33 +906,66 @@
 
         function updateAndCopy() {
             triggerCanvasUpdate();
-            // Slight delay ensures the DOM repaints with the new formatting and drops the green addendum tags before copying
             setTimeout(() => {
                 copyVisualRichText();
-            }, 150);
+            }, 200);
         }
 
         function triggerCanvasUpdate() {
+            isInitialLoad = false; // Disable initial highlights on manual update
             const visualArea = document.getElementById('viewVisual');
             if (visualArea.innerText.includes("No formatted content generated")) {
                 triggerToast("Format a clinical record first!", "⚠️");
                 return;
             }
-            const canvasText = visualArea.innerText;
+            updateRawInputFromVisual();
+            const canvasText = document.getElementById('clinicalInput').value;
             executeFormatterPipeline(canvasText);
             triggerToast("Visual workspace formatted and updated!", "🔄");
         }
 
         function triggerDirectPrint() {
-            const visualArea = document.getElementById('viewVisual');
-            if (visualArea.innerText.includes("No formatted content generated")) {
-                triggerToast("Format a clinical record first!", "⚠️");
-                return;
-            }
-            window.print();
+            isInitialLoad = false;
+            updateRawInputFromVisual();
+            const canvasText = document.getElementById('clinicalInput').value;
+            executeFormatterPipeline(canvasText);
+            
+            setTimeout(() => {
+                window.print();
+            }, 200);
         }
 
-        // Generates cleanly organized raw unstructured logs from the live canvas DOM structures
+        // Extremely robust DOM parsing to preserve manual user bolding/italic formatting when rebuilding Raw Text
+        function extractCleanHTML(li) {
+            let clone = li.cloneNode(true);
+            
+            let highlights = clone.querySelectorAll('span.initial-highlight');
+            highlights.forEach(span => {
+                let parent = span.parentNode;
+                while(span.firstChild) parent.insertBefore(span.firstChild, span);
+                parent.removeChild(span);
+            });
+            
+            let fonts = clone.querySelectorAll('font');
+            fonts.forEach(font => {
+                let parent = font.parentNode;
+                while(font.firstChild) parent.insertBefore(font.firstChild, font);
+                parent.removeChild(font);
+            });
+            
+            let labels = clone.querySelectorAll('strong.emr-label');
+            labels.forEach(label => {
+                let parent = label.parentNode;
+                while(label.firstChild) parent.insertBefore(label.firstChild, label);
+                parent.removeChild(label);
+            });
+            
+            let cleanHtml = clone.innerHTML;
+            cleanHtml = cleanHtml.replace(/&nbsp;/g, ' ');
+            cleanHtml = cleanHtml.replace(/<br\s*[\/]?>/gi, '\n');
+            return cleanHtml.trim();
+        }
+
         function updateRawInputFromVisual() {
             const visualArea = document.getElementById('viewVisual');
             if (!visualArea) return;
@@ -938,12 +974,19 @@
             
             const h1 = visualArea.querySelector('h1');
             if (h1) {
-                rawText += h1.innerText.trim() + "\n\n";
+                let h1Clone = h1.cloneNode(true);
+                let fonts = h1Clone.querySelectorAll('font');
+                fonts.forEach(f => {
+                    let p = f.parentNode;
+                    while(f.firstChild) p.insertBefore(f.firstChild, f);
+                    p.removeChild(f);
+                });
+                rawText += h1Clone.innerText.trim() + "\n\n";
             }
             
             const docDate = visualArea.querySelector('#doc-date');
             if (docDate) {
-                let dateText = docDate.innerText.replace("Date:", "").trim();
+                let dateText = docDate.innerText.replace("Date:", "").replace("✅", "").trim();
                 rawText += "Date: " + dateText + "\n";
             }
             
@@ -957,7 +1000,7 @@
                 rawText += "TIMELINE\n";
                 const lis = timelineList.querySelectorAll('li');
                 lis.forEach(li => {
-                    rawText += "- " + li.innerText.trim() + "\n";
+                    rawText += "- " + extractCleanHTML(li) + "\n";
                 });
                 rawText += "\n";
             }
@@ -967,7 +1010,7 @@
                 rawText += "ADVICE\n";
                 const lis = adviceList.querySelectorAll('li');
                 lis.forEach(li => {
-                    rawText += "- " + li.innerText.trim() + "\n";
+                    rawText += "- " + extractCleanHTML(li) + "\n";
                 });
                 rawText += "\n";
             }
@@ -977,15 +1020,13 @@
                 rawText += "REVIEW\n";
                 const lis = reviewList.querySelectorAll('li');
                 lis.forEach(li => {
-                    rawText += "- " + li.innerText.trim() + "\n";
+                    rawText += "- " + extractCleanHTML(li) + "\n";
                 });
             }
             
             document.getElementById('clinicalInput').value = rawText.trim();
             onInputChanged();
         }
-
-        // --- KMAIL PREPARATION & DISPATCH MODULES ---
 
         function showKmailModal() {
             const visualArea = document.getElementById('viewVisual');
@@ -1034,7 +1075,7 @@
                     triggerToast("PDF generation failed", "⚠️");
                 });
         }
-        // Launch pre-configured oncology mail client router
+        
         function launchKmailDraft() {
             const visualArea = document.getElementById('viewVisual');
             const today = getTodayDateString();
@@ -1045,7 +1086,6 @@
             const recipient = 'oncology.tennur@kauveryhospital.com';
             const subject = encodeURIComponent(`Da Vinci EMR Update: ${parsedPatientName} - ${today}`);
             
-            // Format email narrative text instructions
             const visualText = visualArea.innerText;
             const bodyInstructions = `Hi Team,\n\nPlease find the oncology clinical report update for ${parsedPatientName} generated on ${today}.\n\n[IMPORTANT: Please attach the downloaded file "${filename}" to this email before sending]\n\n---\nCLINICAL SUMMARY PREVIEW:\n${visualText}\n\n---\nSent via Da Vinci Oncology Workspace.`;
             const body = encodeURIComponent(bodyInstructions);
@@ -1077,12 +1117,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
 
