@@ -129,7 +129,7 @@
                 <span class="text-zinc-800">•</span>
                 <span>EMR ENGINE v2.6</span>
             </div>
-            <button onclick="toggleFullScreen()" title="Toggle Fullscreen" class="text-zinc-400 hover:text-white transition-colors duration-150 flex items-center justify-center">
+            <button onclick="toggleFullScreen()" title="Toggle Fullscreen (Ctrl+F)" class="text-zinc-400 hover:text-white transition-colors duration-150 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
             </button>
         </div>
@@ -151,8 +151,8 @@
                     <button onclick="triggerCanvasUpdate()" title="Update Canvas" class="w-8 h-8 flex items-center justify-center bg-yellow-500 hover:bg-yellow-400 text-zinc-950 rounded shadow-lg shadow-yellow-500/20 transition-all duration-150">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     </button>
-                    <button onclick="updateAndCopy()" title="Update & Copy" class="w-8 h-8 flex items-center justify-center bg-pink-500 hover:bg-pink-400 text-white rounded shadow-lg shadow-pink-500/20 transition-all duration-150">
-                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    <button onclick="updateAndCopy()" title="Update & Copy (Ctrl+C)" class="w-8 h-8 flex items-center justify-center bg-pink-500 hover:bg-pink-400 text-white rounded shadow-lg shadow-pink-500/20 transition-all duration-150">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                     </button>
                 </div>
 
@@ -166,49 +166,7 @@
                 <div class="w-4 h-px bg-zinc-800/80"></div>
                 
                 <div class="flex flex-col gap-1 w-full items-center">
-                    <div class="relative w-8 h-8" title="Font Family">
-                        <button class="w-full h-full flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-serif text-[13px] transition-colors duration-150">Ff</button>
-                        <select onchange="applyFontFamily(this.value)" class="absolute inset-0 opacity-0 cursor-pointer">
-                            <option value="Calibri, 'Segoe UI', Arial, sans-serif">Calibri</option>
-                            <option value="'Avenir Next', Avenir, sans-serif">Avenir Next</option>
-                            <option value="Arial, sans-serif">Arial</option>
-                            <option value="Georgia, serif">Georgia</option>
-                            <option value="'Courier New', Courier, monospace">Courier New</option>
-                            <option value="Helvetica, sans-serif">Helvetica</option>
-                            <option value="'Times New Roman', Times, serif">Times New Roman</option>
-                        </select>
-                    </div>
-                    <div class="relative w-8 h-8" title="Font Size">
-                        <button class="w-full h-full flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-sans text-[13px] transition-colors duration-150">Sz</button>
-                        <select onchange="applyFontSize(this.value)" class="absolute inset-0 opacity-0 cursor-pointer">
-                            <option value="13px">Size (13px)</option>
-                            <option value="10px">10px</option>
-                            <option value="11px">11px</option>
-                            <option value="12px">12px</option>
-                            <option value="13px">13px</option>
-                            <option value="14px">14px</option>
-                            <option value="16px">16px</option>
-                            <option value="18px">18px</option>
-                            <option value="20px">20px</option>
-                            <option value="24px">24px</option>
-                            <option value="28px">28px</option>
-                        </select>
-                    </div>
-                    <div class="relative w-8 h-8" title="Paragraph Style">
-                        <button class="w-full h-full flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-serif text-[13px] transition-colors duration-150">¶</button>
-                        <select onchange="applyParagraphStyle(this.value)" class="absolute inset-0 opacity-0 cursor-pointer">
-                            <option value="p">Paragraph</option>
-                            <option value="h1">Heading 1</option>
-                            <option value="h2">Heading 2</option>
-                            <option value="h3">Heading 3</option>
-                            <option value="blockquote">Blockquote</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="w-4 h-px bg-zinc-800/80"></div>
-
-                <div class="flex flex-col gap-1 w-full items-center">
+                    <button onmousedown="event.preventDefault()" onclick="selectAllCanvas()" title="Select All" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-semibold text-[11px] transition-colors duration-150">All</button>
                     <button onmousedown="event.preventDefault()" onclick="applyTextFormat('bold')" title="Bold" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-bold text-[13px] transition-colors duration-150">B</button>
                     <button onmousedown="event.preventDefault()" onclick="applyTextFormat('italic')" title="Italic" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded italic font-serif text-[13px] transition-colors duration-150">/</button>
                     <button onmousedown="event.preventDefault()" onclick="applyTextFormat('underline')" title="Underline" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded underline text-[13px] transition-colors duration-150">U</button>
@@ -319,6 +277,20 @@
             }
         });
 
+        // Global Keyboard Shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Control + F for Fullscreen
+            if (e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                toggleFullScreen();
+            }
+            // Control + C for Update and Copy
+            if (e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === 'c') {
+                e.preventDefault();
+                updateAndCopy();
+            }
+        });
+
         // 1-Click Smart Placeholder Selection Tool
         window.selectPlaceholderText = function(element, event) {
             if (element.dataset.selected === "true") return;
@@ -378,15 +350,57 @@
             }
         });
 
-        // Addendum & Auto-Capitalize Feature
+        // Addendum, Auto-Capitalize & Canvas Gestures Feature
         document.addEventListener('DOMContentLoaded', () => {
             const visualArea = document.getElementById('viewVisual');
             if (!visualArea) return;
 
-            // Type Tracker (Red text)
+            // Double-click empty area for fullscreen
+            visualArea.addEventListener('dblclick', function(e) {
+                // If selection length is 0, they clicked an empty space, not a word
+                if (window.getSelection().toString().trim().length === 0) {
+                    toggleFullScreen();
+                }
+            });
+
+            // Shift+Z Retain Tracker & Light Blue Typing Tracker
             visualArea.addEventListener('keydown', function(e) {
+                
+                // Shift + Z for retained changelog (Changes yellow highlight to blue)
+                if (e.shiftKey && e.key.toLowerCase() === 'z' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    e.preventDefault();
+                    let sel = window.getSelection();
+                    if (sel.rangeCount > 0) {
+                        let node = sel.anchorNode;
+                        let elem = node.nodeType === 3 ? node.parentElement : node;
+                        let highlight = elem.closest('.initial-highlight');
+                        
+                        if (highlight) {
+                            highlight.style.backgroundColor = '#bae6fd'; 
+                            highlight.style.color = 'inherit';
+                            highlight.style.fontWeight = 'inherit';
+                            highlight.style.cursor = 'text';
+                            highlight.dataset.selected = "false";
+                            highlight.classList.remove('initial-highlight');
+                            highlight.classList.add('changelog-highlight');
+                            
+                            // Collapse selection to end so user can continue naturally
+                            sel.collapseToEnd();
+                        } else {
+                            document.execCommand('styleWithCSS', false, true);
+                            document.execCommand('backColor', false, '#bae6fd');
+                            document.execCommand('hiliteColor', false, '#bae6fd');
+                        }
+                    }
+                    return;
+                }
+
+                // Apply light blue background when typing standard printable characters
                 if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                    document.execCommand('foreColor', false, '#FF0000'); 
+                    document.execCommand('styleWithCSS', false, true);
+                    document.execCommand('backColor', false, '#bae6fd');
+                    document.execCommand('hiliteColor', false, '#bae6fd');
+                    document.execCommand('foreColor', false, '#333333'); 
                 }
             });
 
@@ -427,10 +441,11 @@
                 }
             });
 
+            // Wrap pasted text in blue changelog background
             visualArea.addEventListener('paste', function(e) {
                 e.preventDefault();
                 const text = (e.originalEvent || e).clipboardData.getData('text/plain');
-                document.execCommand('insertHTML', false, `<font color="#FF0000">${text.replace(/\n/g, '<br>')}</font>`);
+                document.execCommand('insertHTML', false, `<span style="background-color: #bae6fd; color: #333333;">${text.replace(/\n/g, '<br>')}</span>`);
             });
         });
 
@@ -494,6 +509,20 @@
                     triggerToast("Exited Fullscreen", "🖥️");
                 }
             }
+        }
+
+        function selectAllCanvas() {
+            const visualArea = document.getElementById('viewVisual');
+            if (visualArea.innerText.includes("No formatted content generated")) return;
+            
+            const range = document.createRange();
+            range.selectNodeContents(visualArea);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            
+            savedRange = range.cloneRange();
+            triggerToast("Canvas selected!", "✨");
         }
 
         function clearWorkspace() {
@@ -864,19 +893,16 @@
             finalOutput += `<p id="doc-hx" style="margin-top: 0px; margin-bottom: 4px; line-height: 1.5;"><strong>Hx:</strong> ${hxText}</p>\n`;
 
             finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase; text-decoration: underline;"><strong><font color="#005AC8">TIMELINE</font></strong></h2>\n`;
-            finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="timeline-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 8px;">\n`;
             finalOutput += timelineHtml;
             finalOutput += `</ul>\n`;
 
             finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase; text-decoration: underline;"><strong><font color="#005AC8">ADVICE</font></strong></h2>\n`;
-            finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="advice-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 16px;">\n`;
             finalOutput += adviceHtml;
             finalOutput += `</ul>\n`;
 
             finalOutput += `<h2 style="margin-top: 20px; margin-bottom: 4px; font-size: 14px; line-height: 1.3; text-transform: uppercase; text-decoration: underline;"><strong><font color="#005AC8">REVIEW</font></strong></h2>\n`;
-            finalOutput += `<hr style="border: 0; border-top: 1.5px solid #cbd5e1; margin-top: 0px; margin-bottom: 12px; width: 100%; display: block;" />\n`;
             finalOutput += `<ul id="review-list" style="list-style-type: disc; padding-left: 20px; margin-top: 0px; margin-bottom: 8px;">\n`;
             finalOutput += reviewHtml;
             finalOutput += `</ul>\n`;
@@ -895,6 +921,12 @@
             triggerToast("Patient file compiled successfully!", "⚡");
         }
 
+        function applyTextFormat(command) {
+            restoreSelection();
+            document.execCommand(command, false, null);
+            syncVisualToCode();
+        }
+
         function rgbToHex(rgb) {
             if (!rgb) return "#333333";
             if (rgb.startsWith('#')) return rgb;
@@ -904,42 +936,6 @@
             const g = parseInt(match[2]).toString(16).padStart(2, '0');
             const b = parseInt(match[3]).toString(16).padStart(2, '0');
             return `#${r}${g}${b}`;
-        }
-
-        function applyFontFamily(fontName) {
-            restoreSelection();
-            document.execCommand('fontName', false, fontName);
-            syncVisualToCode();
-            triggerToast("Font applied!", "✒️");
-        }
-
-        function applyFontSize(sizeValue) {
-            restoreSelection();
-            document.execCommand('styleWithCSS', false, false);
-            document.execCommand('fontSize', false, '7');
-
-            const container = document.getElementById('viewVisual');
-            const fontElements = container.querySelectorAll('font[size="7"]');
-            fontElements.forEach(el => {
-                el.removeAttribute('size');
-                el.style.fontSize = sizeValue;
-            });
-            
-            syncVisualToCode();
-            triggerToast("Size applied: " + sizeValue, "📏");
-        }
-
-        function applyParagraphStyle(styleTag) {
-            restoreSelection();
-            document.execCommand('formatBlock', false, `<${styleTag}>`);
-            syncVisualToCode();
-            triggerToast("Paragraph style updated!", "✍️");
-        }
-
-        function applyTextFormat(command) {
-            restoreSelection();
-            document.execCommand(command, false, null);
-            syncVisualToCode();
         }
 
         function copyFormatStyle() {
@@ -1046,11 +1042,10 @@
             }, 200);
         }
 
-        // Extremely robust DOM parsing to strip temporary formatting but preserve manual Markdown
         function extractCleanHTML(li) {
             let clone = li.cloneNode(true);
             
-            // Annihilate temporary yellow highlights 
+            // Annihilate temporary yellow and blue highlights 
             let spans = clone.querySelectorAll('span');
             spans.forEach(span => {
                 let parent = span.parentNode;
@@ -1058,7 +1053,7 @@
                 parent.removeChild(span);
             });
             
-            // Annihilate red tracking and structural EMR fonts
+            // Annihilate structural EMR fonts
             let fonts = clone.querySelectorAll('font');
             fonts.forEach(font => {
                 let parent = font.parentNode;
@@ -1183,16 +1178,25 @@
 
         function proceedWithKmail() {
             closeKmailModal();
-            triggerPDFGeneration();
-            launchKmailDraft();
-        }
-
-        function triggerPDFGeneration() {
+            
             const visualArea = document.getElementById('viewVisual');
-            const dateStr = getTodayDateString().replace(/\s+/g, '_');
-            const cleanName = parsedPatientName.replace(/[^a-zA-Z0-9]/g, '_');
-            const filename = `${cleanName}_EMR_Update_${dateStr}.pdf`;
+            if (!visualArea || visualArea.innerText.includes("No formatted content generated")) {
+                triggerToast("Canvas is empty!", "⚠️");
+                return;
+            }
 
+            let mailSubject = parsedPatientName;
+            const h1 = visualArea.querySelector('h1');
+            if (h1) {
+                mailSubject = h1.innerText.replace(/\n/g, ' ').trim();
+            }
+            
+            const today = getTodayDateString();
+            const dateStr = today.replace(/\s+/g, '_');
+            const safeName = parsedPatientName.replace(/[^a-zA-Z0-9]/g, '_');
+            const filename = `${safeName}_EMR_${dateStr}.pdf`;
+
+            triggerToast("Compiling PDF for Mail...", "⏳");
             const opt = {
                 margin:       [15, 15, 15, 15],
                 filename:     filename,
@@ -1201,33 +1205,28 @@
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            triggerToast("Compiling PDF document...", "⏳");
-            html2pdf().set(opt).from(visualArea).save()
-                .then(() => {
-                    triggerToast("PDF compiled successfully!", "📄");
-                })
-                .catch(err => {
-                    console.error("PDF generation failed:", err);
-                    triggerToast("PDF generation failed", "⚠️");
-                });
-        }
-        
-        function launchKmailDraft() {
-            const visualArea = document.getElementById('viewVisual');
-            const today = getTodayDateString();
-            const dateStr = today.replace(/\s+/g, '_');
-            const cleanName = parsedPatientName.replace(/[^a-zA-Z0-9]/g, '_');
-            const filename = `${cleanName}_EMR_Update_${dateStr}.pdf`;
+            html2pdf().set(opt).from(visualArea).output('blob').then((pdfBlob) => {
+                const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-            const recipient = 'oncology.tennur@kauveryhospital.com';
-            const subject = encodeURIComponent(`Da Vinci EMR Update: ${parsedPatientName} - ${today}`);
-            
-            const visualText = visualArea.innerText;
-            const bodyInstructions = `Hi Team,\n\nPlease find the oncology clinical report update for ${parsedPatientName} generated on ${today}.\n\n[IMPORTANT: Please attach the downloaded file "${filename}" to this email before sending]\n\n---\nCLINICAL SUMMARY PREVIEW:\n${visualText}\n\n---\nSent via Da Vinci Oncology Workspace.`;
-            const body = encodeURIComponent(bodyInstructions);
-            
-            window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
-            triggerToast("Mail composer opened!", "✉️");
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: mailSubject
+                    }).then(() => {
+                        triggerToast("Passed to Mail via Share!", "✅");
+                    }).catch((err) => {
+                        console.warn("Share canceled/failed", err);
+                        triggerToast("Share canceled.", "⚠️");
+                    });
+                } else {
+                    triggerToast("Direct attach blocked. Downloading...", "⚠️");
+                    html2pdf().set(opt).from(visualArea).save();
+                    window.location.href = `mailto:oncology.tennur@kauveryhospital.com?subject=${encodeURIComponent(mailSubject)}`;
+                }
+            }).catch(err => {
+                console.error("PDF generation failed:", err);
+                triggerToast("PDF generation failed", "❌");
+            });
         }
 
         function copyVisualRichText() {
