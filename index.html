@@ -167,6 +167,12 @@
                 
                 <div class="flex flex-col gap-1 w-full items-center">
                     <button onmousedown="event.preventDefault()" onclick="selectAllCanvas()" title="Select All" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-semibold text-[11px] transition-colors duration-150">All</button>
+                    
+                    <div class="relative w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors duration-150 overflow-hidden" title="Text Color">
+                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10M12 3L7 17m5-14l5 14M8.5 12h7"></path></svg>
+                        <input type="color" id="textColorPicker" oninput="applyTextColor(this.value)" class="absolute -inset-2 w-12 h-12 opacity-0 cursor-pointer" value="#ff0000">
+                    </div>
+
                     <button onmousedown="event.preventDefault()" onclick="applyTextFormat('bold')" title="Bold" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded font-bold text-[13px] transition-colors duration-150">B</button>
                     <button onmousedown="event.preventDefault()" onclick="applyTextFormat('italic')" title="Italic" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded italic font-serif text-[13px] transition-colors duration-150">/</button>
                     <button onmousedown="event.preventDefault()" onclick="applyTextFormat('underline')" title="Underline" class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded underline text-[13px] transition-colors duration-150">U</button>
@@ -304,8 +310,8 @@
             element.dataset.selected = "true";
             
             const resetSelection = function(e) {
-                if (!element.contains(e.target)) {
-                    element.dataset.selected = "false";
+                if (!document.body.contains(element) || !element.contains(e.target)) {
+                    if (document.body.contains(element)) element.dataset.selected = "false";
                     document.removeEventListener('click', resetSelection);
                 }
             };
@@ -357,15 +363,50 @@
 
             // Double-click empty area for fullscreen
             visualArea.addEventListener('dblclick', function(e) {
-                // If selection length is 0, they clicked an empty space, not a word
                 if (window.getSelection().toString().trim().length === 0) {
                     toggleFullScreen();
                 }
             });
 
-            // Shift+Z Retain Tracker & Light Blue Typing Tracker
+            // --- CLICK-TO-SELECT BULLETS FEATURE ---
+            visualArea.addEventListener('mousedown', function(e) {
+                if (e.target && e.target.tagName === 'LI') {
+                    const rect = e.target.getBoundingClientRect();
+                    if (e.clientX < rect.left + 5) {
+                        const range = document.createRange();
+                        range.selectNodeContents(e.target);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                        e.preventDefault(); 
+                    }
+                }
+            });
+
+            // Tracking Engine
             visualArea.addEventListener('keydown', function(e) {
                 
+                // Intercept Backspace/Delete to destroy the entire bullet line if placeholder is selected
+                if (e.key === 'Backspace' || e.key === 'Delete') {
+                    let sel = window.getSelection();
+                    if (sel.rangeCount > 0) {
+                        let node = sel.anchorNode;
+                        let elem = node.nodeType === 3 ? node.parentElement : node;
+                        let highlight = elem.closest('.initial-highlight');
+                        
+                        if (highlight && highlight.dataset.selected === "true") {
+                            e.preventDefault(); 
+                            let li = highlight.closest('li');
+                            if (li) {
+                                li.remove(); 
+                            } else {
+                                highlight.remove();
+                            }
+                            return; 
+                        }
+                    }
+                }
+
                 // Shift + Z for retained changelog (Changes yellow highlight to blue)
                 if (e.shiftKey && e.key.toLowerCase() === 'z' && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     e.preventDefault();
@@ -384,7 +425,6 @@
                             highlight.classList.remove('initial-highlight');
                             highlight.classList.add('changelog-highlight');
                             
-                            // Collapse selection to end so user can continue naturally
                             sel.collapseToEnd();
                         } else {
                             document.execCommand('styleWithCSS', false, true);
@@ -567,7 +607,7 @@
                 'adjuvant chemotherapy', 'neoadjuvant', 'capecitabine', 'cisplatin', 'carboplatin', 
                 'paclitaxel', 'docetaxel', 'gemcitabine', 'pemetrexed', 'oxaliplatin', '5-fu', 
                 'irinotecan', 'doxorubicin', 'cyclophosphamide', 'trastuzumab', 'pertuzumab', 'pembrolizumab',
-                'zoledronic acid'
+                'zoledronic acid', 'hormone', 'hormonal', 'endocrine'
             ];
             const pathologyKeywords = [
                 'biopsy', 'pathology', 'ihc', 'fnac', 'histopathology', 'specimen', 'ngs', 
@@ -582,7 +622,7 @@
             if (hasWord(imagingKeywords)) return "#db2777"; // Dark Pink
             if (hasWord(surgeryKeywords)) return "#009600"; // Bold Green
             if (hasWord(rtKeywords)) return "#D32F2F"; // Clinical Red
-            if (hasWord(chemoKeywords)) return "#7B1FA2"; // Royal Purple
+            if (hasWord(chemoKeywords)) return "#b45309"; // Dark Yellow / Brown (Amber-700)
             if (hasWord(pathologyKeywords)) return "#B8860B"; // Dark Golden
             if (hasWord(miscKeywords)) return "#707070"; // Slate Grey
             if (hasWord(complaintsKeywords)) return "#00BFFF"; // Light Sky Blue
@@ -601,12 +641,14 @@
             return cleaned;
         }
 
+        // --- NEW: Translates manual color tags [c:#hex]text[/c] back to HTML spans ---
         function applyMarkdown(str) {
             if (!str) return "";
             return str
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/__U__(.*?)__U__/g, '<u>$1</u>')
-                .replace(/__(.*?)__/g, '<i>$1</i>');
+                .replace(/__(.*?)__/g, '<i>$1</i>')
+                .replace(/\[c:(#[0-9a-fA-F]{3,6})\]([\s\S]*?)\[\/c\]/g, '<span style="color: $1;">$2</span>');
         }
 
         function syncVisualToCode() {
@@ -921,6 +963,20 @@
             triggerToast("Patient file compiled successfully!", "⚡");
         }
 
+        // --- NEW: Color Picker Logic ---
+        function applyTextColor(colorValue) {
+            restoreSelection();
+            
+            // Use styleWithCSS=true so the browser generates a <span style="color:..."> instead of a generic <font> tag.
+            // This makes it easy for us to identify and protect manual colors during the "Update Canvas" cycle!
+            document.execCommand('styleWithCSS', false, true);
+            document.execCommand('foreColor', false, colorValue);
+            document.execCommand('styleWithCSS', false, false); // Reset to default
+            
+            syncVisualToCode();
+            triggerToast("Color applied!", "🎨");
+        }
+
         function applyTextFormat(command) {
             restoreSelection();
             document.execCommand(command, false, null);
@@ -988,11 +1044,12 @@
                 return;
             }
 
-            document.execCommand('styleWithCSS', false, false);
-
+            // Ensures format painter ALSO generates protected color spans
+            document.execCommand('styleWithCSS', false, true);
             if (copiedFormat.color) {
                 document.execCommand('foreColor', false, copiedFormat.color);
             }
+            document.execCommand('styleWithCSS', false, false); // Reset
 
             const isBold = document.queryCommandState('bold');
             const shouldBeBold = (copiedFormat.fontWeight === 'bold');
@@ -1045,12 +1102,23 @@
         function extractCleanHTML(li) {
             let clone = li.cloneNode(true);
             
-            // Annihilate temporary yellow and blue highlights 
+            // Annihilate temporary yellow and blue highlights, but PROTECT manual colors!
             let spans = clone.querySelectorAll('span');
             spans.forEach(span => {
-                let parent = span.parentNode;
-                while(span.firstChild) parent.insertBefore(span.firstChild, span);
-                parent.removeChild(span);
+                if (span.classList.contains('initial-highlight') || span.classList.contains('changelog-highlight')) {
+                    let parent = span.parentNode;
+                    while(span.firstChild) parent.insertBefore(span.firstChild, span);
+                    parent.removeChild(span);
+                } else if (span.style && span.style.color) {
+                    // This is a manual color span! Safely encode it to markdown for persistence
+                    let hexColor = rgbToHex(span.style.color);
+                    let textNode = document.createTextNode(`[c:${hexColor}]${span.innerHTML}[/c]`);
+                    span.parentNode.replaceChild(textNode, span);
+                } else {
+                    let parent = span.parentNode;
+                    while(span.firstChild) parent.insertBefore(span.firstChild, span);
+                    parent.removeChild(span);
+                }
             });
             
             // Annihilate structural EMR fonts
@@ -1252,4 +1320,3 @@
     </script>
 </body>
 </html>
-
